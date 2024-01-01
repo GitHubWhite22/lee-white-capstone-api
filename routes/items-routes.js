@@ -1,15 +1,14 @@
-// instock-api/routes
-// /inventories-routes.js for ref
-
 const router = require("express").Router();
-const itemsController = require("../controllers/items-controllers");
+const userController = require("../controllers/user-controller");
 
-router.route("/").get(itemsController.getAll).post(itemsController.postNew);
+router.route("/").get(userController.index).post(userController.add);
 
-router.route("/:id").get(itemsController.getOne);
-//   .patch(itemsController.editExisting)
-//   .delete(itemsController.erase);
+router
+  .route("/:id")
+  .get(userController.findOne)
+  .patch(userController.update)
+  .delete(userController.remove);
 
-router.route("/warehousenames").get(itemsController.getItemId);
+router.route("/:id/posts").get(userController.posts);
 
 module.exports = router;
