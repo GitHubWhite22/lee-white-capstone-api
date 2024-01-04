@@ -22,6 +22,22 @@ app.get("/items", async (_req, res) => {
   }
 });
 
+app.get("/items/:id", async (req, res) => {
+  const id = req.params.id;
+
+  try {
+    const data = await knex
+      .select("*")
+      .from("knitting_patterns")
+      .where({ id: id })
+      .first();
+    console.log(data);
+    res.json(data);
+  } catch {
+    res.status(500).send("Error getting item");
+  }
+});
+
 app.post("/add", async (req, res) => {
   const { item } = req.body;
 
@@ -41,6 +57,30 @@ app.post("/add", async (req, res) => {
   // add this item to line_items
 
   res.sendStatus(201);
+});
+
+app.get("/cart", async (req, res) => {
+  let order = await knex("orders").where({ opened: true }).first();
+  if (!order) {
+    res.status(400).send("cannot find open cart");
+  } else {
+    const items = await knex
+      .select("*", "line_items.id as id")
+      .from("line_items")
+      .where({ order_id: order.id })
+      .join("knitting_patterns", "knitting_patterns.id", "line_items.item_id");
+    res.json(items);
+  }
+});
+
+app.post("/close-cart", async (req, res) => {
+  let order = await knex("orders").where({ opened: true }).first();
+  if (!order) {
+    res.status(400).send("cannot find open cart");
+  } else {
+    await knex("orders").where({ id: order.id }).update("opened", false);
+    res.sendStatus(204);
+  }
 });
 
 app.listen(PORT, () => {
